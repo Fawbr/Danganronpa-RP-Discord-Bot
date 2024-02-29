@@ -157,43 +157,48 @@ class Gacha(commands.Cog):
         currencyInfo = currency.currency_list
         playerFound = False
         gachaChosen = False
-        for x in range(len(currencyInfo)):
-            if ctx.author.id == currencyInfo[x][0]:
-                if currencyInfo[x][1] >= 100:
-                    gachaRange = (len(self.gacha_list) - 1)
+        if self.gacha_list:
+            for x in range(len(currencyInfo)):
+                if ctx.author.id == currencyInfo[x][0]:
+                    if currencyInfo[x][1] >= 100:
+                        gachaRange = (len(self.gacha_list) - 1)
 
-                    while (gachaChosen == False):
-                        gachaChoice = random.randint(0, gachaRange)
-                        if (len(self.gacha_list[gachaChoice]) == 3):
-                            if (self.gacha_list[gachaChoice][2] > 0):
-                                self.gacha_list[gachaChoice][2] -= 1
-                                gachaChosen = True
-                        else:
-                            gachaChosen = True
-
-                    gachaEmbed = discord.Embed(
-                    title = "You rolled a {}!".format(self.gacha_list[gachaChoice][0]),
-                    description = "Here's the information for your item",
-                    color = 0xA04FDB)
-                    gachaEmbed.add_field(name="{}".format(self.gacha_list[gachaChoice][0]), value="{}".format(self.gacha_list[gachaChoice][1], inline=False))
-                    inventoryAdd = [self.gacha_list[gachaChoice][0], self.gacha_list[gachaChoice][1]]
-                    if self.inventory:
-                        for x in range(len(self.inventory)):
-                            if ctx.author.id == self.inventory[x][0]:
-                                playerFound = True
-                                self.inventory[x].append(inventoryAdd)
-                                break
+                        while (gachaChosen == False):
+                            gachaChoice = random.randint(0, gachaRange)
+                            if (len(self.gacha_list[gachaChoice]) == 3):
+                                if (self.gacha_list[gachaChoice][2] > 0):
+                                    self.gacha_list[gachaChoice][2] -= 1
+                                    gachaChosen = True
                             else:
-                                playerFound = False
+                                gachaChosen = True
 
-                        if playerFound == False:
+                        gachaEmbed = discord.Embed(
+                        title = "You rolled a {}!".format(self.gacha_list[gachaChoice][0]),
+                        description = "Here's the information for your item",
+                        color = 0xA04FDB)
+                        gachaEmbed.add_field(name="{}".format(self.gacha_list[gachaChoice][0]), value="{}".format(self.gacha_list[gachaChoice][1], inline=False))
+                        inventoryAdd = [self.gacha_list[gachaChoice][0], self.gacha_list[gachaChoice][1]]
+                        if self.inventory:
+                            for x in range(len(self.inventory)):
+                                if ctx.author.id == self.inventory[x][0]:
+                                    playerFound = True
+                                    self.inventory[x].append(inventoryAdd)
+                                    break
+                                else:
+                                    playerFound = False
+
+                            if playerFound == False:
+                                inventoryAdd = [ctx.author.id, [self.gacha_list[gachaChoice][0], self.gacha_list[gachaChoice][1]]]
+                        else:
                             inventoryAdd = [ctx.author.id, [self.gacha_list[gachaChoice][0], self.gacha_list[gachaChoice][1]]]
-                    else:
-                        inventoryAdd = [ctx.author.id, [self.gacha_list[gachaChoice][0], self.gacha_list[gachaChoice][1]]]
-                        self.inventory.append(inventoryAdd)
+                            self.inventory.append(inventoryAdd)
 
-                    await ctx.send(embed=gachaEmbed)
-                    currency.currency_list[x][1] -= 100
+                        await ctx.send(embed=gachaEmbed)
+                        currency.currency_list[x][1] -= 100
+                    else:
+                        await ctx.send("You don't have enough for gacha!")
+        else:
+            await ctx.send("No items to roll! If you're an admin, try adding some with ``>add_gacha``!")        
 
     @commands.command()
     async def inventory(self, ctx):       
@@ -220,6 +225,8 @@ class Gacha(commands.Cog):
                     view.updateEmbedList(embedList)
                     invEmbed = view.embedHandler(embedList, 0)
                     await ctx.send(embed=invEmbed, view=view)
+        else:
+            await ctx.send("You have no items in your inventory! Try rolling for gacha using the ``>roll`` command!")
 
     @commands.command()
     async def view_item(self, ctx, *args):
